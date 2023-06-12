@@ -124,7 +124,7 @@ const detectorConfig = {
   maxFaces: 99,
   solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
 } as any;
-const detector = await faceLandmarksDetection.createDetector(model, detectorConfig);
+let detector: faceLandmarksDetection.FaceLandmarksDetector;
 
 // Body segmenter configuration and init
 const segmenterModel = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
@@ -132,7 +132,7 @@ const segmenterConfig = {
   runtime: 'tfjs', // or 'tfjs'
   modelType: 'general', // or 'landscape'
 } as any;
-const segmenter = await bodySegmentation.createSegmenter(segmenterModel, segmenterConfig);
+let segmenter: bodySegmentation.BodySegmenter
 
 interface Source {
   image: HTMLImageElement;
@@ -148,16 +148,16 @@ export default defineNuxtComponent({
       message: "Sto inizializzando l'app, aspettare qualche secondo." as string,
       images: [] as HTMLImageElement[],
       sources: [] as Source[],
-      loading: true as boolean,
       elaborating: false as boolean,
       removeBg: false as boolean,
       progress: 0 as number,
       PAD: 0.5 as number,
     };
   },
-  mounted() {
+  async mounted() {
+    detector = await faceLandmarksDetection.createDetector(model, detectorConfig);
+    segmenter = await bodySegmentation.createSegmenter(segmenterModel, segmenterConfig);
     this.message = "App pronta!";
-    this.loading = false;
   },
   methods: {
     async loadImage(event: any) {
