@@ -3,24 +3,30 @@ export default defineNuxtConfig({
   ssr: false,
   app: {
     head: {
-      title: 'Nuxt3 x GitHub Pages',
+      title: 'Project No More Ugly Faces',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { hid: 'description', name: 'description', content: 'Dario Tecchia\' personal website!' },
+        { hid: 'description', name: 'description', content: 'Project No More Ugly Faces' },
         { name: 'format-detection', content: 'telephone=no' }
       ],
       link: [
         { rel: 'icon', type: 'image/svg', href: '/favicon.svg' }
       ]
     },
-    baseURL: '/nuxt3-ghpages/'
+    // baseURL: '/'
+  },
+  build: {
+    transpile: ["primevue"]
   },
   modules: [
   ],
   css: [
-    "bootstrap/dist/css/bootstrap.min.css",
-    "bootstrap-vue-3/dist/bootstrap-vue-3.css",
+    'primevue/resources/primevue.min.css',
+    'primevue/resources/themes/lara-light-blue/theme.css',
+    'primeflex/primeflex.scss',
+    'primeflex/themes/primeone-light.scss',
+    'primeicons/primeicons.css',
     '@/assets/style/main.scss',
   ]
 })
