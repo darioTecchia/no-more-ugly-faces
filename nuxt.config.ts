@@ -20,7 +20,7 @@ export default defineNuxtConfig({
         },
       ]
     },
-    baseURL: '/no-more-ugly-faces/'
+    baseURL: './'
   },
   build: {
     transpile: ["primevue"]

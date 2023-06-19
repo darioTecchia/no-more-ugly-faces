@@ -109,6 +109,7 @@
 import JSZip from 'jszip';
 import moment from 'moment';
 
+import '@mediapipe/face_mesh';
 import '@tensorflow/tfjs-backend-webgl';
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import * as bodySegmentation from '@tensorflow-models/body-segmentation';
@@ -119,19 +120,19 @@ const HEIGHT = 531;
 
 // Face detector configuration and init
 const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
-const detectorConfig = {
-  runtime: 'mediapipe', // or 'tfjs'
+const detectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
+  runtime: 'tfjs', // or 'tfjs'
   maxFaces: 99,
-  solutionPath: 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
-} as any;
+  refineLandmarks: true
+};
 let detector: faceLandmarksDetection.FaceLandmarksDetector;
 
 // Body segmenter configuration and init
 const segmenterModel = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
-const segmenterConfig = {
+const segmenterConfig: bodySegmentation.MediaPipeSelfieSegmentationTfjsModelConfig = {
   runtime: 'tfjs', // or 'tfjs'
   modelType: 'general', // or 'landscape'
-} as any;
+};
 let segmenter: bodySegmentation.BodySegmenter
 
 interface Source {
