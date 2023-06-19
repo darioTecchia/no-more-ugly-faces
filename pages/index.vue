@@ -193,10 +193,11 @@ export default defineNuxtComponent({
       console.log("runFaceRecognition");
       const faces = await this.detectFaces(image);
       if (faces) {
-        const obj = {
+        const obj: Source = {
           image,
           fileName,
           faces: faces.map((face: faceLandmarksDetection.Face) => this.getUrlFromFaceSource(image, face)),
+          faces2: faces.map((face: faceLandmarksDetection.Face) => this.getUrlFromFaceSource2(image, face)),
           // faces,
           toRemove: faces.length !== 1,
           toRemoveMotivation: faces.length !== 1 ? `La foto è esclusa poiché ci sono ${faces.length} volti!` : ""
@@ -227,6 +228,31 @@ export default defineNuxtComponent({
       canvas.width = WIDTH;
       canvas.height = HEIGHT;
       ctx?.drawImage(sourceImage, paddedX, paddedY, paddedWidth, paddedHeight, offsetX, offsetY, actualWidth, actualHeight);
+      return canvas.toDataURL();
+    },
+    getUrlFromFaceSource2(sourceImage: HTMLImageElement, face: faceLandmarksDetection.Face): string {
+      console.log("getUrlFromFaceSource");
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const box = face.box;
+      const paddingX = box.width * this.PAD;
+      const paddingY = box.height * this.PAD;
+      const paddedX = box.xMin - paddingX;
+      const paddedY = box.yMin - paddingY;
+      const paddedWidth = box.width + 2 * paddingX;
+      const paddedHeight = box.height + 2 * paddingY;
+      // Calculate the scale ratio to fit the padded rectangle within the canvas
+      const ratio = Math.min(WIDTH / paddedWidth, HEIGHT / paddedHeight);
+      // Calculate the actual dimensions within the canvas
+      const actualWidth = paddedWidth * ratio;
+      const actualHeight = paddedHeight * ratio;
+      // Calculate the offset to center the face within the canvas
+      const offsetX = (WIDTH - actualWidth) / 2;
+      const offsetY = (HEIGHT - actualHeight) / 2;
+      // Set the canvas dimensions
+      canvas.width = WIDTH;
+      canvas.height = HEIGHT;
+      ctx?.drawImage(sourceImage, paddedX, paddedY, paddedWidth, paddedHeight, 0, 0, actualWidth, actualHeight);
       return canvas.toDataURL();
     },
     async detectFaces(image: HTMLImageElement): Promise<faceLandmarksDetection.Face[]> {

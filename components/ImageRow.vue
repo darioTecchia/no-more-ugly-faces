@@ -21,8 +21,11 @@
       <div class="align-items-center d-flex w-75">
         <img :class="{ 'opacity-50': source.toRemove }" class="source-image me-5 w-25" :src="source.image.src" />
 
-        <div :class="{ 'opacity-50': source.toRemove }" class="w-25" v-if="source.faces.length == 1">
+        <div :class="{ 'opacity-50': source.toRemove }" class="w-25 d-flex" v-if="source.faces.length == 1">
           <a v-for="face of source.faces" :download="`${source.fileName}.png`" :href="face">
+            <img class="source-image preview w-100" :src="face" />
+          </a>
+          <a v-for="face of source.faces2" :download="`${source.fileName}.png`" :href="face">
             <img class="source-image preview w-100" :src="face" />
           </a>
         </div>
