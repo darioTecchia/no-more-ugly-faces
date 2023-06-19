@@ -1,5 +1,5 @@
 <template>
-  <div id="main">
+  <div id="main" class="container">
     <h1 class="mt-3 mb-3">Project No More Ugly Faces</h1>
 
     <div class="form">
@@ -33,54 +33,8 @@
     </div>
 
     <div class="results-wrapper">
-      <div v-for="(source, index) of sources" class="card mb-3" :class="{ 'border-danger': source.toRemove }">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          Immagine #{{ index + 1 }}
-
-          <div class="align-items-center d-flex">
-            <a class="icon-link" :download="`image_${index + 1}_1.png`" :href="source.faces[0]">
-              <button type="button" class="btn btn-sm me-4 p-0">
-                <i class="bi bi-cloud-download"></i>
-              </button>
-            </a>
-            <div class="form-check form-switch mb-0">
-              <input class="form-check-input" aria-label="Rimuovi" v-model="source.toRemove" type="checkbox" role="switch"
-                id="keepCheck">
-            </div>
-          </div>
-
-        </div>
-
-        <div class="card-body d-flex align-items-center justify-content-between">
-          <div class="align-items-center d-flex w-75">
-            <img :class="{ 'opacity-50': source.toRemove }" class="source-image me-5 w-25" :src="source.image.src" />
-
-            <div :class="{ 'opacity-50': source.toRemove }" class="w-25" v-if="source.faces.length == 1">
-              <a v-for="(face, subIndex) of source.faces" :download="`image_${index + 1}_${subIndex + 1}.png`"
-                :href="face">
-                <img class="source-image preview w-100" :src="face" />
-              </a>
-            </div>
-            <div class="w-25" v-else-if="source.faces.length == 0">
-              Non sono stati identificati volti! Si consiglia di riprovare.
-            </div>
-            <div class="w-25" v-else>
-              Troppi volti.
-            </div>
-          </div>
-
-          <div class="w-25">
-            <div class="row">
-              <div class="col" v-if="source.toRemove">
-                <label for="remoteMotivation" class="form-label">Motivare l'esclusione della foto.</label>
-                <input v-model="source.toRemoveMotivation" type="text" id="remoteMotivation" class="form-control"
-                  placeholder="Motivazione esclusione" aria-label="Motivazione esclusione">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <ImageRow v-for="(source, index) of sources" :source="source" :index="index" :key="source.fileName + (index + 1)">
+      </ImageRow>
       <div v-if="elaborating" class="card mb-2 placeholder-glow">
         <div class="card-header"><span class="placeholder w-25"></span></div>
         <div class="card-body">
@@ -109,6 +63,8 @@
 import JSZip from 'jszip';
 import moment from 'moment';
 
+import { Source } from '~/assets/classes/Source';
+
 import '@mediapipe/face_mesh';
 import '@tensorflow/tfjs-backend-webgl';
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
@@ -134,13 +90,6 @@ const segmenterConfig: bodySegmentation.MediaPipeSelfieSegmentationTfjsModelConf
   modelType: 'general', // or 'landscape'
 };
 let segmenter: bodySegmentation.BodySegmenter
-
-interface Source {
-  image: HTMLImageElement;
-  faces: string[];
-  toRemove: boolean;
-  toRemoveMotivation: string;
-}
 
 export default defineNuxtComponent({
   name: "index",
@@ -178,13 +127,15 @@ export default defineNuxtComponent({
       this.message = `Ho elaborato ${files.length} immagini in ${(endTime - startTime) / 1000}s.`;
     },
     async processImage(file: File, index: number, total: number) {
+      console.log(file);
+
       console.log("processImage");
       let image = await this.loadImageFromFile(file);
       if (this.removeBg) {
         image = await this.removeBackground(image);
       }
       this.images.push(image);
-      await this.runFaceRecognition(image);
+      await this.runFaceRecognition(image, file.name);
       this.progress = Math.floor(((index + 1) / total) * 100);
     },
     async loadImageFromFile(file: File): Promise<HTMLImageElement> {
@@ -236,12 +187,15 @@ export default defineNuxtComponent({
       let zipBlob = await zip.generateAsync({ type: "blob" });
       this.saveAs(zipBlob, "images.zip");
     },
-    async runFaceRecognition(image: HTMLImageElement) {
+    async runFaceRecognition(image: HTMLImageElement, fileName: string) {
+      console.log(image);
+
       console.log("runFaceRecognition");
       const faces = await this.detectFaces(image);
       if (faces) {
         const obj = {
           image,
+          fileName,
           faces: faces.map((face: faceLandmarksDetection.Face) => this.getUrlFromFaceSource(image, face)),
           // faces,
           toRemove: faces.length !== 1,
