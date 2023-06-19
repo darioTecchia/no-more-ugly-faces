@@ -6,7 +6,7 @@
       <br>
       Si prega di attendere qualche istante.
     </h2>
-    <LogoNTT class="m-5 mt-0 mb-0 w-3" />
+    <LogoNTT class="m-5 mt-0 mb-0 w-25" />
   </div>
 </template>
 

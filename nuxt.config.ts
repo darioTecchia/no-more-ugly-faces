@@ -13,26 +13,17 @@ export default defineNuxtConfig({
       link: [
         { rel: 'icon', type: 'image/svg', href: '/favicon.svg' }
       ],
-      script: [
-        {
-          type: 'text/javascript',
-          src: 'mesh/face_mesh/face_mesh.js',
-        },
-      ]
     },
-    baseURL: './'
+    baseURL: '/no-more-ugly-faces/'
   },
   build: {
-    transpile: ["primevue"]
   },
-  modules: [
-  ],
   css: [
-    'primevue/resources/primevue.min.css',
-    'primevue/resources/themes/lara-light-blue/theme.css',
-    'primeflex/primeflex.scss',
-    'primeflex/themes/primeone-light.scss',
-    'primeicons/primeicons.css',
+    '~/node_modules/bootstrap/scss/bootstrap.scss',
+    '~/node_modules/@fortawesome/fontawesome-free/scss/fontawesome.scss',
+    '~/node_modules/@fortawesome/fontawesome-free/scss/regular.scss',
+    '~/node_modules/@fortawesome/fontawesome-free/scss/solid.scss',
+    '~/node_modules/@fortawesome/fontawesome-free/scss/brands.scss',
     '@/assets/style/main.scss',
   ]
 })
