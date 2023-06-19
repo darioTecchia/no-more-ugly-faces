@@ -12,6 +12,12 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/svg', href: '/favicon.svg' }
+      ],
+      script: [
+        {
+          type: 'text/javascript',
+          src: 'mesh/face_mesh/face_mesh.js',
+        },
       ]
     },
     baseURL: '/no-more-ugly-faces/'
