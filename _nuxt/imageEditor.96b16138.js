@@ -1,0 +1,1 @@
+import{a as p,r as e,b as t,f as r,F as s,o as a}from"./entry.2d6086a8.js";const _={};function m(g,i){const o=e("VueCropper"),n=e("vue-cropper"),c=e("Cropper");return a(),t(s,null,[r(o,{src:"/img/bar.png"}),r(n,{src:"/img/bar.png"}),r(c,{src:"/img/bar.png"})],64)}const f=p(_,[["render",m]]);export{f as default};
