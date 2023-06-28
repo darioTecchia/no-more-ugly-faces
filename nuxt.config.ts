@@ -24,6 +24,7 @@ export default defineNuxtConfig({
     '~/node_modules/@fortawesome/fontawesome-free/scss/regular.scss',
     '~/node_modules/@fortawesome/fontawesome-free/scss/solid.scss',
     '~/node_modules/@fortawesome/fontawesome-free/scss/brands.scss',
+    '~/node_modules/vue-advanced-cropper/dist/style.css',
     '@/assets/style/main.scss',
   ]
 })
