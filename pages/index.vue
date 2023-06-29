@@ -29,7 +29,7 @@
     </div>
 
     <div class="progress mb-3" role="progressbar" aria-label="Example with label" :aria-valuenow="progress"
-      aria-valuemin="0" aria-valuemax="100">
+      aria-valuemin="0" aria-valuemax="100" v-if="elaborating">
       <div class="progress-bar" :style="{ width: progress + '%' }">{{ progress }}%</div>
     </div>
 
