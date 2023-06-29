@@ -1,15 +1,15 @@
 <template>
   <div id="main" class="container">
-    <h1 class="mt-3 mb-3">Project No More Ugly Faces</h1>
+    <h1 class="mt-3 mb-3">Project No More Ugly Faces <sup class="text-danger">Beta</sup></h1>
 
     <div class="form">
       <div class="row mb-3">
         <div class="col">
           <label for="uploadInput" class="form-label">Upload immagini.</label>
-          <input multiple type="file" class="form-control" id="uploadInput" accept="image/*" @change="loadImage"
-            aria-describedby="fileHelp">
+          <input :disabled="!appReady || elaborating" multiple type="file" class="form-control" id="uploadInput"
+            accept="image/*" @change="loadImage" aria-describedby="fileHelp">
         </div>
-        <div class="col">
+        <div class="col" v-if="false">
           <label for="padInput" class="form-label">Seleziona quanto <code>PAD</code> inserire.</label>
           <input min="0" step=".1" max="2" v-model="PAD" type="number" id="padInput" class="form-control"
             placeholder="PAD" aria-label="PAD">
@@ -19,13 +19,16 @@
         <div class="col">
           <input v-model="removeBg" class="form-check-input" type="checkbox" value="" id="removeBgCheck">
           <label class="form-check-label" for="removeBgCheck">
-            Rimuovi sfondo
+            Rimuovi sfondo <sup class="text-danger">Beta</sup>
           </label>
         </div>
       </div>
     </div>
 
-    <div class="mb-3">{{ message }}</div>
+    <div class="mb-3">
+      {{ message }}
+      <i v-if="!appReady || elaborating" class="fa-solid fa-spinner fa-spin"></i>
+    </div>
 
     <div class="progress mb-3" role="progressbar" aria-label="Example with label" :aria-valuenow="progress"
       aria-valuemin="0" aria-valuemax="100">
@@ -33,7 +36,8 @@
     </div>
 
     <div class="results-wrapper">
-      <ImageRow v-for="(source, index) of sources" :source="source" :index="index" :key="source.fileName + (index + 1)">
+      <ImageRow v-for="(source, index) of sources" :PAD="PAD" :source="source" :index="index"
+        :key="index">
       </ImageRow>
       <div v-if="elaborating" class="card mb-2 placeholder-glow">
         <div class="card-header"><span class="placeholder w-25"></span></div>
@@ -63,16 +67,16 @@
 import JSZip from 'jszip';
 import moment from 'moment';
 
-import { Source } from '~/assets/classes/Source';
+import Source from '~/assets/classes/Source';
 
 import '@mediapipe/face_mesh';
 import '@tensorflow/tfjs-backend-webgl';
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import * as bodySegmentation from '@tensorflow-models/body-segmentation';
+import { saveAs } from '~/assets/classes/helpers';
 
 const WIDTH = 413;
 const HEIGHT = 531;
-// const PAD = 70;
 
 // Face detector configuration and init
 const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
@@ -91,22 +95,35 @@ const segmenterConfig: bodySegmentation.MediaPipeSelfieSegmentationTfjsModelConf
 };
 let segmenter: bodySegmentation.BodySegmenter
 
+declare interface IndexComponentData {
+  message: string;
+  appReady: boolean;
+  images: HTMLImageElement[];
+  sources: Source[];
+  elaborating: boolean;
+  removeBg: boolean;
+  progress: number;
+  PAD: number;
+}
+
 export default defineNuxtComponent({
   name: "index",
-  data() {
+  data(): IndexComponentData {
     return {
-      message: "Sto inizializzando l'app, aspettare qualche secondo." as string,
-      images: [] as HTMLImageElement[],
-      sources: [] as Source[],
-      elaborating: false as boolean,
-      removeBg: false as boolean,
-      progress: 0 as number,
-      PAD: 0.5 as number,
+      message: "Sto inizializzando l'app, si prega di attendere qualche secondo",
+      appReady: false,
+      images: [],
+      sources: [],
+      elaborating: false,
+      removeBg: false,
+      progress: 0,
+      PAD: 0.5,
     };
   },
   async mounted() {
     detector = await faceLandmarksDetection.createDetector(model, detectorConfig);
     segmenter = await bodySegmentation.createSegmenter(segmenterModel, segmenterConfig);
+    this.appReady = true;
     this.message = "App pronta!";
   },
   methods: {
@@ -127,8 +144,6 @@ export default defineNuxtComponent({
       this.message = `Ho elaborato ${files.length} immagini in ${(endTime - startTime) / 1000}s.`;
     },
     async processImage(file: File, index: number, total: number) {
-      console.log(file);
-
       console.log("processImage");
       let image = await this.loadImageFromFile(file);
       if (this.removeBg) {
@@ -148,86 +163,47 @@ export default defineNuxtComponent({
       });
     },
     generateReport() {
-      let textContent = `Report del ${moment().format("DD-MM-YYYY")}\n\n`;
+      let textContent = `riferimento;motivazione_scarto\n`;
       textContent = this.sources.reduce((accumulator, source, index) => {
         if (source.toRemove) {
-          return accumulator + `Foto #${index + 1}. Esclusa con seguente motivazione: ${source.toRemoveMotivation}\n`;
+          return accumulator + `${source.fileName};${source.toRemoveMotivation}\n`;
         }
         else {
           return accumulator + "";
         }
       }, textContent);
       // Create a Blob object with the text content
-      const blob = new Blob([textContent], { type: "text/plain" });
-      this.saveAs(blob, "report.txt");
-    },
-    saveAs(blobContent: Blob, fileName: string) {
-      console.log(blobContent, fileName);
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blobContent);
-      link.download = fileName;
-      // Add the link to the document
-      document.body.appendChild(link);
-      // Trigger the download
-      link.click();
-      // Clean up the object URL
-      link.remove();
-      URL.revokeObjectURL(link.href);
+      const blob = new Blob([textContent], { type: "text/csv;charset=utf-8" });
+      saveAs(blob, "report.csv");
     },
     async downloadAll() {
-      // Create a new JSZip instance
+      // // Create a new JSZip instance
       const zip = new JSZip();
       let sourcesToDownload = this.sources.filter(source => !source.toRemove);
       for (let index = 0; index < sourcesToDownload.length; index++) {
         const source = sourcesToDownload[index];
-        let blob = await (await fetch(source.faces[0])).blob();
-        let file = new Blob([blob], { type: "image/png" });
-        zip.file(index + ".png", file);
+        let blob = await (await fetch(source.finalSrc)).blob();
+        let file = new Blob([blob], { type: "image/jpeg" });
+        zip.file(source.fileName + '.jpeg', file);
       }
       let zipBlob = await zip.generateAsync({ type: "blob" });
-      this.saveAs(zipBlob, "images.zip");
+      saveAs(zipBlob, "images.zip");
     },
     async runFaceRecognition(image: HTMLImageElement, fileName: string) {
-      console.log(image);
-
       console.log("runFaceRecognition");
       const faces = await this.detectFaces(image);
       if (faces) {
-        const obj = {
+        const obj: Source = {
           image,
           fileName,
-          faces: faces.map((face: faceLandmarksDetection.Face) => this.getUrlFromFaceSource(image, face)),
-          // faces,
+          faces: faces.length,
+          facesBox: faces[0]?.box,
           toRemove: faces.length !== 1,
-          toRemoveMotivation: faces.length !== 1 ? `La foto è esclusa poiché ci sono ${faces.length} volti!` : ""
+          toRemoveMotivation: faces.length !== 1 ? 'Nessun volto rilevato.' : "",
+          finalSrc: ''
         };
         this.sources.push(obj);
       }
-    },
-    getUrlFromFaceSource(sourceImage: HTMLImageElement, face: faceLandmarksDetection.Face): string {
-      console.log("getUrlFromFaceSource");
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const box = face.box;
-      const paddingX = box.width * this.PAD;
-      const paddingY = box.height * this.PAD;
-      const paddedX = box.xMin - paddingX;
-      const paddedY = box.yMin - paddingY;
-      const paddedWidth = box.width + 2 * paddingX;
-      const paddedHeight = box.height + 2 * paddingY;
-      // Calculate the scale ratio to fit the padded rectangle within the canvas
-      const ratio = Math.min(WIDTH / paddedWidth, HEIGHT / paddedHeight);
-      // Calculate the actual dimensions within the canvas
-      const actualWidth = paddedWidth * ratio;
-      const actualHeight = paddedHeight * ratio;
-      // Calculate the offset to center the face within the canvas
-      const offsetX = (WIDTH - actualWidth) / 2;
-      const offsetY = (HEIGHT - actualHeight) / 2;
-      // Set the canvas dimensions
-      canvas.width = WIDTH;
-      canvas.height = HEIGHT;
-      ctx?.drawImage(sourceImage, paddedX, paddedY, paddedWidth, paddedHeight, offsetX, offsetY, actualWidth, actualHeight);
-      return canvas.toDataURL();
     },
     async detectFaces(image: HTMLImageElement): Promise<faceLandmarksDetection.Face[]> {
       console.log("detectFaces");
@@ -236,7 +212,7 @@ export default defineNuxtComponent({
       return faces;
     },
     async removeBackground(sourceImage: HTMLImageElement) {
-      console.log("removeBackground", sourceImage);
+      console.log("removeBackground");
       const canvas = document.createElement("canvas");
       canvas.width = WIDTH;
       canvas.height = HEIGHT;

@@ -70,3 +70,18 @@ Now wait for deploy. If everything will be ok you can found this:
 ![GitHub Bar](assets/img/deployed.png "Site deployed")
 
 You can find the deploy at this url: https://dariotecchia.github.io/nuxt3-ghpages/
+
+
+### INSTALL
+
+Now using node v16.14.2 (npm v8.5.0)
+
+```bash
+mvn install 16.14.2
+npm install -g npm@8.5.0
+npm install
+npm run generate
+```
+
+###PREVIEW
+[MCT SUITE PREVIEW](https://mctsuite.it.nttdata-emea.com/preview/no-more-ugly-faces/)

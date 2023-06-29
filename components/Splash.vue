@@ -1,6 +1,6 @@
 <template>
   <div class="splash">
-    <h1 class="m-5">Project No More Ugly Faces</h1>
+    <h1 class="m-5">Project No More Ugly Faces <sup class="text-danger">Beta</sup></h1>
     <h2 class="m-5 mt-0 ">
       Scarico e inizializzo le risorse necessarie.
       <br>
