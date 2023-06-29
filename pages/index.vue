@@ -1,6 +1,6 @@
 <template>
   <div id="main" class="container">
-    <h1 class="mt-3 mb-3">Project No More Ugly Faces</h1>
+    <h1 class="mt-3 mb-3">Project No More Ugly Faces <sup class="text-danger">Beta</sup></h1>
 
     <div class="form">
       <div class="row mb-3">
@@ -9,7 +9,7 @@
           <input :disabled="!appReady || elaborating" multiple type="file" class="form-control" id="uploadInput"
             accept="image/*" @change="loadImage" aria-describedby="fileHelp">
         </div>
-        <div class="col">
+        <div class="col" v-if="false">
           <label for="padInput" class="form-label">Seleziona quanto <code>PAD</code> inserire.</label>
           <input min="0" step=".1" max="2" v-model="PAD" type="number" id="padInput" class="form-control"
             placeholder="PAD" aria-label="PAD">
@@ -19,7 +19,7 @@
         <div class="col">
           <input v-model="removeBg" class="form-check-input" type="checkbox" value="" id="removeBgCheck">
           <label class="form-check-label" for="removeBgCheck">
-            Rimuovi sfondo
+            Rimuovi sfondo <sup class="text-danger">Beta</sup>
           </label>
         </div>
       </div>
@@ -199,7 +199,7 @@ export default defineNuxtComponent({
           faces: faces.length,
           facesBox: faces[0]?.box,
           toRemove: faces.length !== 1,
-          toRemoveMotivation: faces.length !== 1 ? `La foto è esclusa poiché ci sono ${faces.length} volti!` : "",
+          toRemoveMotivation: faces.length !== 1 ? 'Nessun volto rilevato.' : "",
           finalSrc: ''
         };
         this.sources.push(obj);
