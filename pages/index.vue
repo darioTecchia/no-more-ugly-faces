@@ -15,13 +15,11 @@
             placeholder="PAD" aria-label="PAD">
         </div>
       </div>
-      <div class="row form-check mb-3">
-        <div class="col">
-          <input v-model="removeBg" class="form-check-input" type="checkbox" value="" id="removeBgCheck">
-          <label class="form-check-label" for="removeBgCheck">
-            Rimuovi sfondo <sup class="text-danger">Beta</sup>
-          </label>
-        </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" value="" id="removeBgCheck">
+        <label class="form-check-label" for="removeBgCheck">
+          Rimuovi sfondo <sup class="text-danger">Beta</sup>
+        </label>
       </div>
     </div>
 
