@@ -113,7 +113,7 @@ export default defineNuxtComponent({
       this.elaborating = true;
       if (files.length > 0) {
         for (let i = 0; i < files.length; i++) {
-          let source = await imageProcessor.processImage(files[i], i, files.length, this.removeBg);
+          let source = await imageProcessor.processImage(files[i], this.removeBg);
           if (source) {
             this.sources.push(source)
           }

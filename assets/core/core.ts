@@ -49,7 +49,7 @@ class ImageProcessor {
     });
   }
 
-  async processImage(file: File, index: number, total: number, removeBackground: boolean = false): Promise<Source | undefined> {
+  async processImage(file: File, removeBackground: boolean = false): Promise<Source | undefined> {
     console.log("processImage");
     let image = await this.loadImageFromFile(file);
     if (removeBackground) {
