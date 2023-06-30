@@ -34,8 +34,7 @@
     </div>
 
     <div class="results-wrapper">
-      <ImageRow v-for="(source, index) of sources" :PAD="PAD" :source="source" :index="index"
-        :key="index">
+      <ImageRow v-for="(source, index) of sources" :PAD="PAD" :source="source" :index="index" :key="index">
       </ImageRow>
       <div v-if="elaborating" class="card mb-2 placeholder-glow">
         <div class="card-header"><span class="placeholder w-25"></span></div>
@@ -63,35 +62,14 @@
 
 <script lang="ts">
 import JSZip from 'jszip';
-import moment from 'moment';
 
 import Source from '~/assets/classes/Source';
+import { ImageProcessor } from '~/assets/core/core';
 
-import '@mediapipe/face_mesh';
-import '@tensorflow/tfjs-backend-webgl';
-import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
-import * as bodySegmentation from '@tensorflow-models/body-segmentation';
 import { saveAs } from '~/assets/classes/helpers';
 
 const WIDTH = 413;
 const HEIGHT = 531;
-
-// Face detector configuration and init
-const model = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
-const detectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
-  runtime: 'tfjs', // or 'tfjs'
-  maxFaces: 99,
-  refineLandmarks: true
-};
-let detector: faceLandmarksDetection.FaceLandmarksDetector;
-
-// Body segmenter configuration and init
-const segmenterModel = bodySegmentation.SupportedModels.MediaPipeSelfieSegmentation;
-const segmenterConfig: bodySegmentation.MediaPipeSelfieSegmentationTfjsModelConfig = {
-  runtime: 'tfjs', // or 'tfjs'
-  modelType: 'general', // or 'landscape'
-};
-let segmenter: bodySegmentation.BodySegmenter
 
 declare interface IndexComponentData {
   message: string;
@@ -103,6 +81,8 @@ declare interface IndexComponentData {
   progress: number;
   PAD: number;
 }
+
+const imageProcessor: ImageProcessor = new ImageProcessor();
 
 export default defineNuxtComponent({
   name: "index",
@@ -119,8 +99,7 @@ export default defineNuxtComponent({
     };
   },
   async mounted() {
-    detector = await faceLandmarksDetection.createDetector(model, detectorConfig);
-    segmenter = await bodySegmentation.createSegmenter(segmenterModel, segmenterConfig);
+    await imageProcessor.setup();
     this.appReady = true;
     this.message = "App pronta!";
   },
@@ -143,22 +122,16 @@ export default defineNuxtComponent({
     },
     async processImage(file: File, index: number, total: number) {
       console.log("processImage");
-      let image = await this.loadImageFromFile(file);
+      let image = await imageProcessor.loadImageFromFile(file);
       if (this.removeBg) {
-        image = await this.removeBackground(image);
+        image = await imageProcessor.removeBackground(image);
       }
       this.images.push(image);
-      await this.runFaceRecognition(image, file.name);
+      let source = await imageProcessor.runFaceRecognition(image, file.name);
+      if (source) {
+        this.sources.push(source)
+      }
       this.progress = Math.floor(((index + 1) / total) * 100);
-    },
-    async loadImageFromFile(file: File): Promise<HTMLImageElement> {
-      console.log("loadImageFromFile");
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = (error) => reject(error);
-        img.src = URL.createObjectURL(file);
-      });
     },
     generateReport() {
       let textContent = `riferimento;motivazione_scarto\n`;
@@ -187,46 +160,6 @@ export default defineNuxtComponent({
       let zipBlob = await zip.generateAsync({ type: "blob" });
       saveAs(zipBlob, "images.zip");
     },
-    async runFaceRecognition(image: HTMLImageElement, fileName: string) {
-      console.log("runFaceRecognition");
-      const faces = await this.detectFaces(image);
-      if (faces) {
-        const obj: Source = {
-          image,
-          fileName,
-          faces: faces.length,
-          facesBox: faces[0]?.box,
-          toRemove: faces.length !== 1,
-          toRemoveMotivation: faces.length !== 1 ? 'Nessun volto rilevato.' : "",
-          finalSrc: ''
-        };
-        this.sources.push(obj);
-      }
-    },
-    async detectFaces(image: HTMLImageElement): Promise<faceLandmarksDetection.Face[]> {
-      console.log("detectFaces");
-      const faces = await detector.estimateFaces(image);
-      detector.reset();
-      return faces;
-    },
-    async removeBackground(sourceImage: HTMLImageElement) {
-      console.log("removeBackground");
-      const canvas = document.createElement("canvas");
-      canvas.width = WIDTH;
-      canvas.height = HEIGHT;
-      const segmentation = await segmenter.segmentPeople(sourceImage);
-      const foregroundColor = { r: 0, g: 0, b: 0, a: 0 };
-      const backgroundColor = { r: 255, g: 255, b: 255, a: 255 };
-      const backgroundDarkeningMask = await bodySegmentation.toBinaryMask(segmentation, foregroundColor, backgroundColor);
-      const opacity = 1;
-      const maskBlurAmount = 3;
-      const flipHorizontal = false;
-      await bodySegmentation.drawMask(canvas, sourceImage, backgroundDarkeningMask, opacity, maskBlurAmount, flipHorizontal);
-      const destinationImage = new Image();
-      destinationImage.src = canvas.toDataURL();
-      segmenter.reset();
-      return destinationImage;
-    }
   },
 })
 </script>
