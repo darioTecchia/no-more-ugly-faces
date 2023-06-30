@@ -49,6 +49,15 @@ class ImageProcessor {
     });
   }
 
+  async processImage(file: File, index: number, total: number, removeBackground: boolean = false): Promise<Source | undefined> {
+    console.log("processImage");
+    let image = await this.loadImageFromFile(file);
+    if (removeBackground) {
+      image = await this.removeBackground(image);
+    }
+    return await this.runFaceRecognition(image, file.name);
+  }
+
   async removeBackground(sourceImage: HTMLImageElement): Promise<HTMLImageElement> {
     console.log("removeBackground");
     const canvas = document.createElement("canvas");
