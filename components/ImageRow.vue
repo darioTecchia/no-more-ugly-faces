@@ -30,16 +30,23 @@
 
     <div class="card-body d-flex align-items-center justify-content-between">
       <div class="align-items-center d-flex">
-        <Cropper :class="{ 'opacity-50': source.toRemove }" :ref="'cropper_' + index" imageRestriction="none"
-          :default-position="defaultPosition" @change="onChange" class="source-image" :src="source.image.src" 
-          :canvas="{
-            height: 531,
-            width: 413
-          }" 
-          :stencil-props="{
-            aspectRatio: 413 / 531
-          }" 
-        />
+        <div>
+          <Cropper :class="{ 'opacity-50': source.toRemove }" :ref="'cropper_' + index" imageRestriction="none"
+            :default-position="defaultPosition" @change="onChange" class="source-image" :src="source.image.src" 
+            :canvas="{
+              height: 531,
+              width: 413
+            }" 
+            :stencil-props="{
+              aspectRatio: 413 / 531
+            }" 
+          />
+          <div class="mt-2">
+            <button @click="$refs['cropper_' + index].reset()" type="button" class="btn btn-sm btn-primary">
+              <i class="fa-solid fa-rotate-left"></i>
+            </button>
+          </div>
+        </div>
         <Preview :class="{ 'opacity-50': source.toRemove }" class="ms-3 border border-1 border-black"
           :image="result.image" :width="413" :height="531" :coordinates="result.coordinates" />
       </div>
@@ -137,7 +144,6 @@ export default defineNuxtComponent({
       } else {
         return {}
       }
-
     },
   }
 })
