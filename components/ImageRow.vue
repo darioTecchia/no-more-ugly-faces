@@ -147,8 +147,6 @@ export default defineNuxtComponent({
       return canvas?.toDataURL('image/jpeg');
     },
     resetImage() {
-      console.log(this.$refs['cropper_' + this.index]);
-      
       this.$refs['cropper_' + this.index].reset();
       this.source.image = this.originalImage;
     },
@@ -181,27 +179,23 @@ export default defineNuxtComponent({
 </script>
 
 <style scoped lang="scss">
-.fade-enter-active {
-  transition: opacity .5s
-}
-
-.fade-enter,
 .fade-leave-active {
-  opacity: 0
+  opacity: 0 !important;
 }
 
 .loading {
-  background: #f1f1f1;
+  background-color: rgba(241, 241, 241, .8);
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   right: 0;
   z-index: 999;
-  opacity: .3;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  transition: opacity .5s;
 }
 
 a {
