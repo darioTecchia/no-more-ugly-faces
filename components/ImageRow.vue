@@ -47,13 +47,13 @@
             }" 
           />
           <div class="mt-2">
-            <button @click="removeBg()" type="button" class="btn btn-sm btn-light">
+            <button @click="removeBg()" type="button" class="btn btn-sm btn-light me-2">
               Rimuovi sfondo
               <i class="fa-solid fa-user-xmark ms-1"></i>
               <sup class="ms-1 text-danger">Beta</sup>
             </button>
 
-            <button @click="resetImage()" type="button" class="btn btn-sm btn-light me-2">
+            <button @click="resetImage()" type="button" class="btn btn-sm btn-light">
               Ripristina
               <i class="fa-solid fa-rotate-left ms-1"></i>
             </button>
