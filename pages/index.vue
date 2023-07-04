@@ -49,13 +49,13 @@
     </div>
 
     <div class="cta-wrapper mb-5" v-if="sources.length > 0">
-      <button type="button" @click="generateReport()" :disabled="elaborating" class="btn btn-info me-3">
+      <button type="button" @click="generateReport()" :disabled="elaborating" class="btn btn-light me-3">
         Genera Report
-        <i class="bi bi-file-earmark-arrow-down"></i>
+        <i class="fa-solid fa-file-csv ms-1"></i>
       </button>
-      <button type="button" @click="downloadAll()" :disabled="elaborating" class="btn btn-primary">
+      <button type="button" @click="downloadAll()" :disabled="elaborating" class="btn btn-light">
         Scarica risultati
-        <i class="bi bi-cloud-arrow-down-fill"></i>
+        <i class="fa-solid fa-file-zipper ms-1"></i>
       </button>
     </div>
 
@@ -83,7 +83,7 @@ declare interface IndexComponentData {
   PAD: number;
 }
 
-const imageProcessor: ImageProcessor = new ImageProcessor();
+const imageProcessor: ImageProcessor = ImageProcessor.getInstance();
 
 export default defineNuxtComponent({
   name: "index",

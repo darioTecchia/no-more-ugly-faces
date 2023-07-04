@@ -24,6 +24,8 @@ const segmenterConfig: bodySegmentation.MediaPipeSelfieSegmentationTfjsModelConf
 
 class ImageProcessor {
 
+  private static instance: ImageProcessor;
+
   private WIDTH: number = WIDTH;
   private HEIGHT: number = HEIGHT;
   private segmenter!: bodySegmentation.BodySegmenter;
@@ -32,6 +34,15 @@ class ImageProcessor {
   private isSetupDone: boolean = false;
 
   constructor() { }
+
+  public static getInstance(): ImageProcessor {
+    if (!ImageProcessor.instance) {
+      ImageProcessor.instance = new ImageProcessor();
+      ImageProcessor.instance.setup();
+    }
+
+    return ImageProcessor.instance;
+  }
 
   async setup() {
     this.detector = await faceLandmarksDetection.createDetector(detectorModel, detectorConfig);

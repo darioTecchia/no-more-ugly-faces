@@ -15,7 +15,7 @@ header {
   background: rgb(103, 133, 193);
   position: sticky;
   top: 0;
-  z-index: 9999999;
+  z-index: 9998;
 
   svg {
     width: 140px;
