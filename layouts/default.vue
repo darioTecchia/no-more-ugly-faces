@@ -1,6 +1,7 @@
 <template>
   <div>
     <Splash v-if="showSplash" />
+    <Header />
     <NuxtPage />
   </div>
 </template>

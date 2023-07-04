@@ -15,11 +15,13 @@
             placeholder="PAD" aria-label="PAD">
         </div>
       </div>
-      <div class="form-check mb-2">
-        <input class="form-check-input" type="checkbox" value="" id="removeBgCheck">
-        <label class="form-check-label" for="removeBgCheck">
-          Rimuovi sfondo <sup class="text-danger">Beta</sup>
-        </label>
+      <div class="row mb-2">
+        <div class="col">
+          <input :disabled="!appReady || elaborating" class="me-2" v-model="removeBg" type="checkbox" id="removeBgCheck">
+          <label class="form-check-label" for="removeBgCheck">
+            Rimuovi sfondo <sup class="text-danger">Beta</sup>
+          </label>
+        </div>
       </div>
     </div>
 
@@ -47,13 +49,13 @@
     </div>
 
     <div class="cta-wrapper mb-5" v-if="sources.length > 0">
-      <button type="button" @click="generateReport()" :disabled="elaborating" class="btn btn-info me-3">
+      <button type="button" @click="generateReport()" :disabled="elaborating" class="btn btn-light me-3">
         Genera Report
-        <i class="bi bi-file-earmark-arrow-down"></i>
+        <i class="fa-solid fa-file-csv ms-1"></i>
       </button>
-      <button type="button" @click="downloadAll()" :disabled="elaborating" class="btn btn-primary">
+      <button type="button" @click="downloadAll()" :disabled="elaborating" class="btn btn-light">
         Scarica risultati
-        <i class="bi bi-cloud-arrow-down-fill"></i>
+        <i class="fa-solid fa-file-zipper ms-1"></i>
       </button>
     </div>
 
@@ -74,7 +76,6 @@ const HEIGHT = 531;
 declare interface IndexComponentData {
   message: string;
   appReady: boolean;
-  images: HTMLImageElement[];
   sources: Source[];
   elaborating: boolean;
   removeBg: boolean;
@@ -82,7 +83,7 @@ declare interface IndexComponentData {
   PAD: number;
 }
 
-const imageProcessor: ImageProcessor = new ImageProcessor();
+const imageProcessor: ImageProcessor = ImageProcessor.getInstance();
 
 export default defineNuxtComponent({
   name: "index",
@@ -90,7 +91,6 @@ export default defineNuxtComponent({
     return {
       message: "Sto inizializzando l'app, si prega di attendere qualche secondo",
       appReady: false,
-      images: [],
       sources: [],
       elaborating: false,
       removeBg: false,
@@ -113,25 +113,16 @@ export default defineNuxtComponent({
       this.elaborating = true;
       if (files.length > 0) {
         for (let i = 0; i < files.length; i++) {
-          await this.processImage(files[i], i, files.length);
+          let source = await imageProcessor.processImage(files[i], this.removeBg);
+          if (source) {
+            this.sources.push(source)
+          }
+          this.progress = Math.floor(((i + 1) / files.length) * 100);
         }
       }
       this.elaborating = false;
       const endTime = new Date().getTime();
       this.message = `Ho elaborato ${files.length} immagini in ${(endTime - startTime) / 1000}s.`;
-    },
-    async processImage(file: File, index: number, total: number) {
-      console.log("processImage");
-      let image = await imageProcessor.loadImageFromFile(file);
-      if (this.removeBg) {
-        image = await imageProcessor.removeBackground(image);
-      }
-      this.images.push(image);
-      let source = await imageProcessor.runFaceRecognition(image, file.name);
-      if (source) {
-        this.sources.push(source)
-      }
-      this.progress = Math.floor(((index + 1) / total) * 100);
     },
     generateReport() {
       let textContent = `riferimento;motivazione_scarto\n`;

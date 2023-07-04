@@ -1,5 +1,8 @@
 <template>
   <div class="image-row card mb-3" :class="{ 'border-danger': source.toRemove }">
+    <div class="loading card" v-if="elaborating">
+      <i class="fa-solid fa-spinner fa-spin fs-3"></i>
+    </div>
     <div class="card-header d-flex justify-content-between align-items-center">
 
       <div class="d-flex align-items-baseline w-50">
@@ -30,16 +33,30 @@
 
     <div class="card-body d-flex align-items-center justify-content-between">
       <div class="align-items-center d-flex">
-        <Cropper :class="{ 'opacity-50': source.toRemove }" :ref="'cropper_' + index" imageRestriction="none"
-          :default-position="defaultPosition" @change="onChange" class="source-image" :src="source.image.src" 
-          :canvas="{
-            height: 531,
-            width: 413
-          }" 
-          :stencil-props="{
-            aspectRatio: 413 / 531
-          }" 
-        />
+        <div>
+          <Cropper :class="{ 'opacity-50': source.toRemove }" :ref="'cropper_' + index" imageRestriction="none"
+            :default-position="defaultPosition" @change="onChange" class="source-image" :src="source.image.src" 
+            :canvas="{
+              height: 531,
+              width: 413
+            }" 
+            :stencil-props="{
+              aspectRatio: 413 / 531
+            }" 
+          />
+          <div class="mt-2">
+            <button @click="$refs['cropper_' + index].reset()" type="button" class="btn btn-sm btn-light me-2">
+              Reset Crop
+              <i class="fa-solid fa-rotate-left ms-1"></i>
+            </button>
+
+            <button @click="removeBg()" type="button" class="btn btn-sm btn-light">
+              Rimuovi sfondo
+              <i class="fa-solid fa-user-xmark ms-1"></i>
+              <sup class="ms-1 text-danger">Beta</sup>
+            </button>
+          </div>
+        </div>
         <Preview :class="{ 'opacity-50': source.toRemove }" class="ms-3 border border-1 border-black"
           :image="result.image" :width="413" :height="531" :coordinates="result.coordinates" />
       </div>
@@ -58,6 +75,7 @@
 </template>
 
 <script setup lang="ts">
+import { ImageProcessor } from 'assets/core/core';
 import Source from '~/assets/classes/Source'
 import { saveAs } from '~/assets/classes/helpers';
 
@@ -79,11 +97,14 @@ defineProps({
 
 <script lang="ts">
 
+const imageProcessor: ImageProcessor = ImageProcessor.getInstance();
+
 declare interface ImageRowComponentData {
   result: {
     coordinates: any;
     image: any;
-  }
+  };
+  elaborating: boolean;
 }
 
 export default defineNuxtComponent({
@@ -94,6 +115,7 @@ export default defineNuxtComponent({
         coordinates: null,
         image: null,
       },
+      elaborating: false
     };
   },
   computed: {
@@ -119,6 +141,11 @@ export default defineNuxtComponent({
       const { canvas } = this.$refs['cropper_' + this.index].getResult();
       return canvas.toDataURL('image/jpeg');
     },
+    async removeBg() {
+      this.elaborating = true;
+      this.source.image = await imageProcessor.removeBackground(this.source.image)
+      this.elaborating = false;
+    },
     defaultPosition() {
       if (this.source.facesBox) {
         const box = this.source.facesBox;
@@ -137,13 +164,26 @@ export default defineNuxtComponent({
       } else {
         return {}
       }
-
     },
   }
 })
 </script>
 
-<style lang="scss">
+<style scoped lang="scss">
+.loading {
+  background: #f1f1f1;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 999;
+  opacity: .3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 a {
   &.preview-wrapper {
     display: block;
