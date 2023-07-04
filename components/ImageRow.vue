@@ -1,8 +1,10 @@
 <template>
   <div class="image-row card mb-3" :class="{ 'border-danger': source.toRemove }">
-    <div class="loading card" v-if="elaborating">
-      <i class="fa-solid fa-spinner fa-spin fs-3"></i>
-    </div>
+    <Transition name="fade">
+      <div class="loading card" v-if="elaborating">
+        <i class="fa-solid fa-spinner fa-spin fs-3"></i>
+      </div>
+    </Transition>
     <div class="card-header d-flex justify-content-between align-items-center">
 
       <div class="d-flex align-items-baseline w-50">
@@ -45,15 +47,15 @@
             }" 
           />
           <div class="mt-2">
-            <button @click="$refs['cropper_' + index].reset()" type="button" class="btn btn-sm btn-light me-2">
-              Reset Crop
-              <i class="fa-solid fa-rotate-left ms-1"></i>
-            </button>
-
-            <button @click="removeBg()" type="button" class="btn btn-sm btn-light">
+            <button @click="removeBg()" type="button" class="btn btn-sm btn-light me-2">
               Rimuovi sfondo
               <i class="fa-solid fa-user-xmark ms-1"></i>
               <sup class="ms-1 text-danger">Beta</sup>
+            </button>
+
+            <button @click="resetImage()" type="button" class="btn btn-sm btn-light">
+              Ripristina
+              <i class="fa-solid fa-rotate-left ms-1"></i>
             </button>
           </div>
         </div>
@@ -105,6 +107,7 @@ declare interface ImageRowComponentData {
     image: any;
   };
   elaborating: boolean;
+  originalImage: any
 }
 
 export default defineNuxtComponent({
@@ -115,7 +118,8 @@ export default defineNuxtComponent({
         coordinates: null,
         image: null,
       },
-      elaborating: false
+      elaborating: false,
+      originalImage: null
     };
   },
   computed: {
@@ -125,6 +129,7 @@ export default defineNuxtComponent({
   },
   mounted() {
     this.source.fileName = this.source.fileName.substr(0, this.source.fileName.lastIndexOf('.')) || this.source.fileName;
+    this.originalImage = this.source.image;
   },
   methods: {
     onChange({ coordinates, image }: any) {
@@ -139,7 +144,11 @@ export default defineNuxtComponent({
     },
     getFinalImage(): string {
       const { canvas } = this.$refs['cropper_' + this.index].getResult();
-      return canvas.toDataURL('image/jpeg');
+      return canvas?.toDataURL('image/jpeg');
+    },
+    resetImage() {
+      this.$refs['cropper_' + this.index].reset();
+      this.source.image = this.originalImage;
     },
     async removeBg() {
       this.elaborating = true;
@@ -170,18 +179,23 @@ export default defineNuxtComponent({
 </script>
 
 <style scoped lang="scss">
+.fade-leave-active {
+  opacity: 0 !important;
+}
+
 .loading {
-  background: #f1f1f1;
+  background-color: rgba(241, 241, 241, .8);
   position: absolute;
   left: 0;
   top: 0;
   bottom: 0;
   right: 0;
   z-index: 999;
-  opacity: .3;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  transition: opacity .5s;
 }
 
 a {
