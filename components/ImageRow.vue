@@ -77,7 +77,6 @@
 <script setup lang="ts">
 import { ImageProcessor } from 'assets/core/core';
 import Source from '~/assets/classes/Source'
-import { saveAs } from '~/assets/classes/helpers';
 
 defineProps({
   source: {
