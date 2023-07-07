@@ -21,7 +21,7 @@
 
       <div class="align-items-center d-flex">
         <button :disabled="source.fileName == ''" type="button" class="btn btn-light btn-sm me-4 p-0" @click="download">
-          <i v-if="source.faces == 1" class="fa-solid fa-download"></i>
+          <i v-if="!source.toRemove" class="fa-solid fa-download"></i>
         </button>
         <div class="form-check form-switch mb-0">
           <input class="form-check-input" aria-label="Rimuovi" v-model="source.toRemove" type="checkbox" role="switch"
