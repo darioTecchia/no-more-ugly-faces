@@ -97,7 +97,7 @@ defineProps({
 
 <script lang="ts">
 
-const imageProcessor: ImageProcessor = await ImageProcessor.getInstance();
+let imageProcessor: ImageProcessor;
 
 declare interface ImageRowComponentData {
   result: {
@@ -124,6 +124,9 @@ export default defineNuxtComponent({
     isValid() {
       return this.source.faces == 1;
     }
+  },
+  async beforeMount() {
+    imageProcessor = await ImageProcessor.getInstance();
   },
   mounted() {
     this.source.fileName = this.source.fileName.substr(0, this.source.fileName.lastIndexOf('.')) || this.source.fileName;

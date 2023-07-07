@@ -35,7 +35,6 @@ class ImageProcessor {
       ImageProcessor.instance = new ImageProcessor();
       await ImageProcessor.instance.setup();
     }
-
     return ImageProcessor.instance;
   }
 

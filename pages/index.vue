@@ -80,7 +80,7 @@ declare interface IndexComponentData {
   PAD: number;
 }
 
-const imageProcessor: ImageProcessor = await ImageProcessor.getInstance();
+let imageProcessor: ImageProcessor;
 
 export default defineNuxtComponent({
   name: "index",
@@ -98,6 +98,9 @@ export default defineNuxtComponent({
   async mounted() {
     this.appReady = true;
     this.message = "App pronta!";
+  },
+  async beforeMount() {
+    imageProcessor = await ImageProcessor.getInstance();
   },
   methods: {
     async loadImage(event: any) {

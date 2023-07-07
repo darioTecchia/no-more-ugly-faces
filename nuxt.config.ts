@@ -16,8 +16,6 @@ export default defineNuxtConfig({
     },
     baseURL: '/no-more-ugly-faces/'
   },
-  build: {
-  },
   css: [
     '~/node_modules/bootstrap/scss/bootstrap.scss',
     '~/node_modules/@fortawesome/fontawesome-free/scss/fontawesome.scss',
