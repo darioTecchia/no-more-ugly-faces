@@ -4,9 +4,6 @@ import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detec
 import * as bodySegmentation from '@tensorflow-models/body-segmentation';
 import Source from 'assets/classes/Source';
 
-const WIDTH = 413;
-const HEIGHT = 531;
-
 // Face detector configuration and init
 const detectorModel = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
 const detectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
@@ -26,19 +23,17 @@ class ImageProcessor {
 
   private static instance: ImageProcessor;
 
-  private WIDTH: number = WIDTH;
-  private HEIGHT: number = HEIGHT;
+  private WIDTH: number = 413;
+  private HEIGHT: number = 531;
   private segmenter!: bodySegmentation.BodySegmenter;
   private detector!: faceLandmarksDetection.FaceLandmarksDetector;
 
-  private isSetupDone: boolean = false;
-
   constructor() { }
 
-  public static getInstance(): ImageProcessor {
+  public static async getInstance(): Promise<ImageProcessor> {
     if (!ImageProcessor.instance) {
       ImageProcessor.instance = new ImageProcessor();
-      ImageProcessor.instance.setup();
+      await ImageProcessor.instance.setup();
     }
 
     return ImageProcessor.instance;
@@ -47,7 +42,6 @@ class ImageProcessor {
   async setup() {
     this.detector = await faceLandmarksDetection.createDetector(detectorModel, detectorConfig);
     this.segmenter = await bodySegmentation.createSegmenter(segmenterModel, segmenterConfig);
-    this.isSetupDone = true;
   }
 
   async loadImageFromFile(file: File): Promise<HTMLImageElement> {
@@ -72,8 +66,8 @@ class ImageProcessor {
   async removeBackground(sourceImage: HTMLImageElement): Promise<HTMLImageElement> {
     console.log("removeBackground");
     const canvas = document.createElement("canvas");
-    canvas.width = WIDTH;
-    canvas.height = HEIGHT;
+    canvas.width = this.WIDTH;
+    canvas.height = this.HEIGHT;
     const segmentation = await this.segmenter.segmentPeople(sourceImage);
     const foregroundColor = { r: 0, g: 0, b: 0, a: 0 };
     const backgroundColor = { r: 255, g: 255, b: 255, a: 255 };
