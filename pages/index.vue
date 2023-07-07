@@ -70,9 +70,6 @@ import { ImageProcessor } from '~/assets/core/core';
 
 import { saveAs } from '~/assets/classes/helpers';
 
-const WIDTH = 413;
-const HEIGHT = 531;
-
 declare interface IndexComponentData {
   message: string;
   appReady: boolean;
@@ -83,7 +80,7 @@ declare interface IndexComponentData {
   PAD: number;
 }
 
-const imageProcessor: ImageProcessor = ImageProcessor.getInstance();
+const imageProcessor: ImageProcessor = await ImageProcessor.getInstance();
 
 export default defineNuxtComponent({
   name: "index",
@@ -99,7 +96,6 @@ export default defineNuxtComponent({
     };
   },
   async mounted() {
-    await imageProcessor.setup();
     this.appReady = true;
     this.message = "App pronta!";
   },

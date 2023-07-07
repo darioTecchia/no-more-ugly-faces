@@ -1,10 +1,8 @@
 <template>
   <div class="image-row card mb-3" :class="{ 'border-danger': source.toRemove }">
-    <Transition name="fade">
-      <div class="loading card" v-if="elaborating">
-        <i class="fa-solid fa-spinner fa-spin fs-3"></i>
-      </div>
-    </Transition>
+    <div class="loading card" v-if="elaborating">
+      <i class="fa-solid fa-spinner fa-spin fs-3"></i>
+    </div>
     <div class="card-header d-flex justify-content-between align-items-center">
 
       <div class="d-flex align-items-baseline w-50">
@@ -99,7 +97,7 @@ defineProps({
 
 <script lang="ts">
 
-const imageProcessor: ImageProcessor = ImageProcessor.getInstance();
+const imageProcessor: ImageProcessor = await ImageProcessor.getInstance();
 
 declare interface ImageRowComponentData {
   result: {
