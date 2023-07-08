@@ -4,8 +4,7 @@ import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detec
 import * as bodySegmentation from '@tensorflow-models/body-segmentation';
 import Source from 'assets/classes/Source';
 
-const WIDTH = 413;
-const HEIGHT = 531;
+import * as tf from '@tensorflow/tfjs';
 
 // Face detector configuration and init
 const detectorModel = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
@@ -26,28 +25,24 @@ class ImageProcessor {
 
   private static instance: ImageProcessor;
 
-  private WIDTH: number = WIDTH;
-  private HEIGHT: number = HEIGHT;
+  private WIDTH: number = 413;
+  private HEIGHT: number = 531;
   private segmenter!: bodySegmentation.BodySegmenter;
   private detector!: faceLandmarksDetection.FaceLandmarksDetector;
 
-  private isSetupDone: boolean = false;
-
   constructor() { }
 
-  public static getInstance(): ImageProcessor {
+  public static async getInstance(): Promise<ImageProcessor> {
     if (!ImageProcessor.instance) {
       ImageProcessor.instance = new ImageProcessor();
-      ImageProcessor.instance.setup();
+      await ImageProcessor.instance.setup();
     }
-
     return ImageProcessor.instance;
   }
 
   async setup() {
     this.detector = await faceLandmarksDetection.createDetector(detectorModel, detectorConfig);
     this.segmenter = await bodySegmentation.createSegmenter(segmenterModel, segmenterConfig);
-    this.isSetupDone = true;
   }
 
   async loadImageFromFile(file: File): Promise<HTMLImageElement> {
@@ -69,11 +64,18 @@ class ImageProcessor {
     return await this.runFaceRecognition(image, file.name);
   }
 
+  async getBrightness(imageElement: HTMLImageElement): Promise<number | any> {
+    const image = tf.browser.fromPixels(imageElement);
+    const brightness = await tf.mean(image).array();
+    image.dispose();
+    return brightness;
+  }
+
   async removeBackground(sourceImage: HTMLImageElement): Promise<HTMLImageElement> {
     console.log("removeBackground");
     const canvas = document.createElement("canvas");
-    canvas.width = WIDTH;
-    canvas.height = HEIGHT;
+    canvas.width = this.WIDTH;
+    canvas.height = this.HEIGHT;
     const segmentation = await this.segmenter.segmentPeople(sourceImage);
     const foregroundColor = { r: 0, g: 0, b: 0, a: 0 };
     const backgroundColor = { r: 255, g: 255, b: 255, a: 255 };
@@ -95,17 +97,31 @@ class ImageProcessor {
     return faces;
   }
 
+  private getRemoveMotivation(numFaces: number, brightness: number): string {
+    let motivations: string[] = [];
+    if(numFaces == 0) {
+      motivations.push("Nessun volto rilevato!");
+    } else if(numFaces >= 2) {
+      motivations.push("Ci sono troppi volti all'interno della foto!");
+    }
+    if(brightness <= 58) {
+      motivations.push("L'immagine risulta essere troppo scura!");
+    }
+    return motivations.join('; ');
+  }
+
   async runFaceRecognition(image: HTMLImageElement, fileName: string): Promise<Source | undefined> {
     console.log("runFaceRecognition");
     const faces = await this.detectFaces(image);
+    const brightness = await this.getBrightness(image);
     if (faces) {
       const obj: Source = {
         image,
         fileName,
         faces: faces.length,
         facesBox: faces[0]?.box,
-        toRemove: faces.length !== 1,
-        toRemoveMotivation: faces.length !== 1 ? 'Nessun volto rilevato.' : "",
+        toRemove: faces.length !== 1 || brightness <= 58,
+        toRemoveMotivation: this.getRemoveMotivation(faces.length, brightness),
         finalSrc: ''
       };
       return obj;

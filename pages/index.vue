@@ -50,12 +50,12 @@
 
     <div class="cta-wrapper mb-5" v-if="sources.length > 0">
       <button type="button" @click="generateReport()" :disabled="elaborating" class="btn btn-light me-3">
-        Genera Report
-        <i class="fa-solid fa-file-csv ms-1"></i>
+        <span v-if="!elaboratingReport">Genera Report &nbsp; <i class="fa-solid fa-file-csv"></i></span>
+        <span v-else>Sto generando il report &nbsp; <i class="fa-solid fa-spinner fa-spin"></i></span>
       </button>
       <button type="button" @click="downloadAll()" :disabled="elaborating" class="btn btn-light">
-        Scarica risultati
-        <i class="fa-solid fa-file-zipper ms-1"></i>
+        <span v-if="!elaboratingZip">Scarica risultati &nbsp; <i class="fa-solid fa-file-zipper"></i></span>
+        <span v-else>Sto generando lo zip &nbsp; <i class="fa-solid fa-spinner fa-spin"></i></span>
       </button>
     </div>
 
@@ -68,11 +68,6 @@ import JSZip from 'jszip';
 import Source from '~/assets/classes/Source';
 import { ImageProcessor } from '~/assets/core/core';
 
-import { saveAs } from '~/assets/classes/helpers';
-
-const WIDTH = 413;
-const HEIGHT = 531;
-
 declare interface IndexComponentData {
   message: string;
   appReady: boolean;
@@ -81,9 +76,11 @@ declare interface IndexComponentData {
   removeBg: boolean;
   progress: number;
   PAD: number;
+  elaboratingReport: boolean;
+  elaboratingZip: boolean;
 }
 
-const imageProcessor: ImageProcessor = ImageProcessor.getInstance();
+let imageProcessor: ImageProcessor;
 
 export default defineNuxtComponent({
   name: "index",
@@ -96,12 +93,16 @@ export default defineNuxtComponent({
       removeBg: false,
       progress: 0,
       PAD: 0.5,
+      elaboratingReport: false,
+      elaboratingZip: false,
     };
   },
   async mounted() {
-    await imageProcessor.setup();
     this.appReady = true;
     this.message = "App pronta!";
+  },
+  async beforeMount() {
+    imageProcessor = await ImageProcessor.getInstance();
   },
   methods: {
     async loadImage(event: any) {
@@ -125,6 +126,7 @@ export default defineNuxtComponent({
       this.message = `Ho elaborato ${files.length} immagini in ${(endTime - startTime) / 1000}s.`;
     },
     generateReport() {
+      this.elaboratingReport = true;
       let textContent = `riferimento;motivazione_scarto\n`;
       textContent = this.sources.reduce((accumulator, source, index) => {
         if (source.toRemove) {
@@ -137,9 +139,10 @@ export default defineNuxtComponent({
       // Create a Blob object with the text content
       const blob = new Blob([textContent], { type: "text/csv;charset=utf-8" });
       saveAs(blob, "report.csv");
+      this.elaboratingReport = false;
     },
     async downloadAll() {
-      // // Create a new JSZip instance
+      this.elaboratingZip = true;
       const zip = new JSZip();
       let sourcesToDownload = this.sources.filter(source => !source.toRemove);
       for (let index = 0; index < sourcesToDownload.length; index++) {
@@ -150,6 +153,7 @@ export default defineNuxtComponent({
       }
       let zipBlob = await zip.generateAsync({ type: "blob" });
       saveAs(zipBlob, "images.zip");
+      this.elaboratingZip = false;
     },
   },
 })

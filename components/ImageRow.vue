@@ -1,10 +1,8 @@
 <template>
   <div class="image-row card mb-3" :class="{ 'border-danger': source.toRemove }">
-    <Transition name="fade">
-      <div class="loading card" v-if="elaborating">
-        <i class="fa-solid fa-spinner fa-spin fs-3"></i>
-      </div>
-    </Transition>
+    <div class="loading card" v-if="elaborating">
+      <i class="fa-solid fa-spinner fa-spin fs-3"></i>
+    </div>
     <div class="card-header d-flex justify-content-between align-items-center">
 
       <div class="d-flex align-items-baseline w-50">
@@ -23,7 +21,7 @@
 
       <div class="align-items-center d-flex">
         <button :disabled="source.fileName == ''" type="button" class="btn btn-light btn-sm me-4 p-0" @click="download">
-          <i v-if="source.faces == 1" class="fa-solid fa-download"></i>
+          <i v-if="!source.toRemove" class="fa-solid fa-download"></i>
         </button>
         <div class="form-check form-switch mb-0">
           <input class="form-check-input" aria-label="Rimuovi" v-model="source.toRemove" type="checkbox" role="switch"
@@ -79,7 +77,6 @@
 <script setup lang="ts">
 import { ImageProcessor } from 'assets/core/core';
 import Source from '~/assets/classes/Source'
-import { saveAs } from '~/assets/classes/helpers';
 
 defineProps({
   source: {
@@ -99,7 +96,7 @@ defineProps({
 
 <script lang="ts">
 
-const imageProcessor: ImageProcessor = ImageProcessor.getInstance();
+let imageProcessor: ImageProcessor;
 
 declare interface ImageRowComponentData {
   result: {
@@ -107,7 +104,8 @@ declare interface ImageRowComponentData {
     image: any;
   };
   elaborating: boolean;
-  originalImage: any
+  originalImage: any;
+  cropper: any;
 }
 
 export default defineNuxtComponent({
@@ -119,7 +117,8 @@ export default defineNuxtComponent({
         image: null,
       },
       elaborating: false,
-      originalImage: null
+      originalImage: null,
+      cropper: null
     };
   },
   computed: {
@@ -127,9 +126,13 @@ export default defineNuxtComponent({
       return this.source.faces == 1;
     }
   },
+  async beforeMount() {
+    imageProcessor = await ImageProcessor.getInstance();
+  },
   mounted() {
     this.source.fileName = this.source.fileName.substr(0, this.source.fileName.lastIndexOf('.')) || this.source.fileName;
     this.originalImage = this.source.image;
+    this.cropper = this.$refs['cropper_' + this.index];
   },
   methods: {
     onChange({ coordinates, image }: any) {
@@ -143,11 +146,11 @@ export default defineNuxtComponent({
       saveAs(this.getFinalImage(), this.source.fileName);
     },
     getFinalImage(): string {
-      const { canvas } = this.$refs['cropper_' + this.index].getResult();
+      const { canvas } = this.cropper.getResult();
       return canvas?.toDataURL('image/jpeg');
     },
     resetImage() {
-      this.$refs['cropper_' + this.index].reset();
+      this.cropper.reset();
       this.source.image = this.originalImage;
     },
     async removeBg() {
