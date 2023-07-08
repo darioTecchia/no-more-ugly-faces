@@ -104,7 +104,8 @@ declare interface ImageRowComponentData {
     image: any;
   };
   elaborating: boolean;
-  originalImage: any
+  originalImage: any;
+  cropper: any;
 }
 
 export default defineNuxtComponent({
@@ -116,7 +117,8 @@ export default defineNuxtComponent({
         image: null,
       },
       elaborating: false,
-      originalImage: null
+      originalImage: null,
+      cropper: null
     };
   },
   computed: {
@@ -130,6 +132,7 @@ export default defineNuxtComponent({
   mounted() {
     this.source.fileName = this.source.fileName.substr(0, this.source.fileName.lastIndexOf('.')) || this.source.fileName;
     this.originalImage = this.source.image;
+    this.cropper = this.$refs['cropper_' + this.index];
   },
   methods: {
     onChange({ coordinates, image }: any) {
@@ -143,11 +146,11 @@ export default defineNuxtComponent({
       saveAs(this.getFinalImage(), this.source.fileName);
     },
     getFinalImage(): string {
-      const { canvas } = this.$refs['cropper_' + this.index].getResult();
+      const { canvas } = this.cropper.getResult();
       return canvas?.toDataURL('image/jpeg');
     },
     resetImage() {
-      this.$refs['cropper_' + this.index].reset();
+      this.cropper.reset();
       this.source.image = this.originalImage;
     },
     async removeBg() {
