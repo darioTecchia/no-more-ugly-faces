@@ -100,19 +100,16 @@ class ImageProcessor {
   }
 
   private getRemoveMotivation(numFaces: number, brightness: number): string {
-    let motivation: string = '';
-
+    let motivations: string[] = [];
     if(numFaces == 0) {
-      motivation += "Nessun volto rilevato! ";
+      motivations.push("Nessun volto rilevato!");
     } else if(numFaces >= 2) {
-      motivation += "Ci sono troppi volti all'interno della foto! ";
+      motivations.push("Ci sono troppi volti all'interno della foto!");
     }
-
     if(brightness <= 58) {
-      motivation += "L'immagine risulta essere troppo scura! ";
+      motivations.push("L'immagine risulta essere troppo scura!");
     }
-
-    return motivation;
+    return motivations.join('; ');
   }
 
   async runFaceRecognition(image: HTMLImageElement, fileName: string): Promise<Source | undefined> {
