@@ -4,6 +4,8 @@ import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detec
 import * as bodySegmentation from '@tensorflow-models/body-segmentation';
 import Source from 'assets/classes/Source';
 
+import * as tf from '@tensorflow/tfjs';
+
 // Face detector configuration and init
 const detectorModel = faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh;
 const detectorConfig: faceLandmarksDetection.MediaPipeFaceMeshTfjsModelConfig = {
@@ -59,7 +61,16 @@ class ImageProcessor {
     if (removeBackground) {
       image = await this.removeBackground(image);
     }
+    console.log(await this.getBrightness(image));
+    
     return await this.runFaceRecognition(image, file.name);
+  }
+
+  async getBrightness(imageElement: HTMLImageElement): Promise<number | any> {
+    const image = tf.browser.fromPixels(imageElement);
+    const brightness = await tf.mean(image).array();
+    image.dispose();
+    return brightness;
   }
 
   async removeBackground(sourceImage: HTMLImageElement): Promise<HTMLImageElement> {
@@ -88,17 +99,34 @@ class ImageProcessor {
     return faces;
   }
 
+  private getRemoveMotivation(numFaces: number, brightness: number): string {
+    let motivation: string = '';
+
+    if(numFaces == 0) {
+      motivation += "Nessun volto rilevato! ";
+    } else if(numFaces >= 2) {
+      motivation += "Ci sono troppi volti all'interno della foto! ";
+    }
+
+    if(brightness <= 58) {
+      motivation += "L'immagine risulta essere troppo scura! ";
+    }
+
+    return motivation;
+  }
+
   async runFaceRecognition(image: HTMLImageElement, fileName: string): Promise<Source | undefined> {
     console.log("runFaceRecognition");
     const faces = await this.detectFaces(image);
+    const brightness = await this.getBrightness(image);
     if (faces) {
       const obj: Source = {
         image,
         fileName,
         faces: faces.length,
         facesBox: faces[0]?.box,
-        toRemove: faces.length !== 1,
-        toRemoveMotivation: faces.length !== 1 ? 'Nessun volto rilevato.' : "",
+        toRemove: faces.length !== 1 || brightness <= 58,
+        toRemoveMotivation: this.getRemoveMotivation(faces.length, brightness),
         finalSrc: ''
       };
       return obj;
