@@ -61,8 +61,6 @@ class ImageProcessor {
     if (removeBackground) {
       image = await this.removeBackground(image);
     }
-    console.log(await this.getBrightness(image));
-    
     return await this.runFaceRecognition(image, file.name);
   }
 
