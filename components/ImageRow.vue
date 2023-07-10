@@ -36,6 +36,7 @@
         <div>
           <Cropper :class="{ 'opacity-50': source.toRemove }" :ref="'cropper_' + index" imageRestriction="none"
             :default-position="defaultPosition" @change="onChange" class="source-image" :src="source.image.src" 
+            background-class="cropper-background"
             :canvas="{
               height: 531,
               width: 413
@@ -74,7 +75,7 @@
         <div class="row mt-2">
           <div class="col">
             <input v-model="source.toRemoveAdditionalMotivation" type="text" id="removeMotivation" class="form-control"
-              placeholder="Informazinoi aggiuntive" aria-label="Informazinoi aggiuntive">
+              placeholder="Informazioni aggiuntive" aria-label="Informazioni aggiuntive">
           </div>
         </div>
       </div>
@@ -86,6 +87,7 @@
 import { ImageProcessor } from 'assets/core/core';
 import Source from '~/assets/classes/Source'
 import CustomBackgroundWrapper from './CustomBackgroundWrapper.vue';
+import html2canvas from 'html2canvas/dist/html2canvas';
 
 defineProps({
   source: {
@@ -104,7 +106,6 @@ defineProps({
 </script>
 
 <script lang="ts">
-
 let imageProcessor: ImageProcessor;
 
 declare interface ImageRowComponentData {
@@ -144,18 +145,18 @@ export default defineNuxtComponent({
     this.cropper = this.$refs['cropper_' + this.index];
   },
   methods: {
-    onChange({ coordinates, image }: any) {
+    async onChange({ coordinates, image }: any) {
       this.result = {
         coordinates,
         image
       };
-      this.source.finalSrc = this.getFinalImage();
+      this.source.finalSrc = await this.getFinalImage();
     },
-    download() {
-      saveAs(this.getFinalImage(), this.source.fileName);
+    async download() {
+      saveAs(await this.getFinalImage(), this.source.fileName);
     },
-    getFinalImage(): string {
-      const { canvas } = this.cropper.getResult();
+    async getFinalImage(): Promise<string> {
+      const canvas = await html2canvas(document.querySelector('.vue-preview__wrapper'));
       return canvas?.toDataURL('image/jpeg');
     },
     resetImage() {
@@ -190,11 +191,13 @@ export default defineNuxtComponent({
 })
 </script>
 
-<style scoped lang="scss">
-.fade-leave-active {
-  opacity: 0 !important;
+<style lang="scss">
+.cropper-background {
+  background-color: #fff;
 }
+</style>
 
+<style scoped lang="scss">
 .loading {
   background-color: rgba(241, 241, 241, .8);
   position: absolute;
