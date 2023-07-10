@@ -53,8 +53,12 @@
         <span v-if="!elaboratingReport">Genera Report &nbsp; <i class="fa-solid fa-file-csv"></i></span>
         <span v-else>Sto generando il report &nbsp; <i class="fa-solid fa-spinner fa-spin"></i></span>
       </button>
-      <button type="button" @click="downloadAll()" :disabled="elaborating" class="btn btn-light">
+      <button type="button" @click="download('valid')" :disabled="elaborating" class="btn btn-light me-3">
         <span v-if="!elaboratingZip">Scarica risultati &nbsp; <i class="fa-solid fa-file-zipper"></i></span>
+        <span v-else>Sto generando lo zip &nbsp; <i class="fa-solid fa-spinner fa-spin"></i></span>
+      </button>
+      <button type="button" @click="download('excluded')" :disabled="elaborating" class="btn btn-light">
+        <span v-if="!elaboratingZip">Scarica immagini non valide &nbsp; <i class="fa-solid fa-file-zipper"></i></span>
         <span v-else>Sto generando lo zip &nbsp; <i class="fa-solid fa-spinner fa-spin"></i></span>
       </button>
     </div>
@@ -128,23 +132,21 @@ export default defineNuxtComponent({
     generateReport() {
       this.elaboratingReport = true;
       let textContent = `riferimento;motivazione_scarto\n`;
-      textContent = this.sources.reduce((accumulator, source, index) => {
-        if (source.toRemove) {
-          return accumulator + `${source.fileName};${source.toRemoveMotivation}\n`;
-        }
-        else {
-          return accumulator + "";
-        }
+      textContent = this.sources.filter(source => source.toRemove).reduce((accumulator, source) => {
+        return accumulator + `${source.fileName};${source.toRemoveMotivations.join('; ')}\n`;
       }, textContent);
       // Create a Blob object with the text content
       const blob = new Blob([textContent], { type: "text/csv;charset=utf-8" });
       saveAs(blob, "report.csv");
       this.elaboratingReport = false;
     },
-    async downloadAll() {
+    async download(option: 'all' | 'valid' | 'excluded' = 'valid') {
       this.elaboratingZip = true;
       const zip = new JSZip();
-      let sourcesToDownload = this.sources.filter(source => !source.toRemove);
+      let sourcesToDownload = this.sources;
+      if (option != 'all') {
+        sourcesToDownload = (option == 'valid' ? this.sources.filter(source => !source.toRemove) : this.sources.filter(source => source.toRemove))
+      }
       for (let index = 0; index < sourcesToDownload.length; index++) {
         const source = sourcesToDownload[index];
         let blob = await (await fetch(source.finalSrc)).blob();

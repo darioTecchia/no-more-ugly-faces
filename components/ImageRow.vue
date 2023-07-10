@@ -31,11 +31,12 @@
 
     </div>
 
-    <div class="card-body d-flex align-items-center justify-content-between">
+    <div class="card-body d-flex align-items-center">
       <div class="align-items-center d-flex">
         <div>
           <Cropper :class="{ 'opacity-50': source.toRemove }" :ref="'cropper_' + index" imageRestriction="none"
             :default-position="defaultPosition" @change="onChange" class="source-image" :src="source.image.src" 
+            background-class="cropper-background"
             :canvas="{
               height: 531,
               width: 413
@@ -65,11 +66,16 @@
       </div>
 
       <div class="p-3" v-if="source.toRemove">
+        Motivazioni dell'esclusione:
         <div class="row">
           <div class="col">
-            <label for="remoteMotivation" class="form-label">Motivare l'esclusione della foto.</label>
-            <input v-model="source.toRemoveMotivation" type="text" id="remoteMotivation" class="form-control"
-              placeholder="Motivazione esclusione" aria-label="Motivazione esclusione">
+            <span v-for="motivation of source.toRemoveMotivations" class="badge text-bg-danger me-1">{{ motivation }}</span>
+          </div>
+        </div>
+        <div class="row mt-2">
+          <div class="col">
+            <input v-model="source.toRemoveAdditionalMotivation" type="text" id="removeMotivation" class="form-control"
+              placeholder="Informazioni aggiuntive" aria-label="Informazioni aggiuntive">
           </div>
         </div>
       </div>
@@ -81,6 +87,7 @@
 import { ImageProcessor } from 'assets/core/core';
 import Source from '~/assets/classes/Source'
 import CustomBackgroundWrapper from './CustomBackgroundWrapper.vue';
+import html2canvas from 'html2canvas/dist/html2canvas';
 
 defineProps({
   source: {
@@ -99,7 +106,6 @@ defineProps({
 </script>
 
 <script lang="ts">
-
 let imageProcessor: ImageProcessor;
 
 declare interface ImageRowComponentData {
@@ -139,18 +145,18 @@ export default defineNuxtComponent({
     this.cropper = this.$refs['cropper_' + this.index];
   },
   methods: {
-    onChange({ coordinates, image }: any) {
+    async onChange({ coordinates, image }: any) {
       this.result = {
         coordinates,
         image
       };
-      this.source.finalSrc = this.getFinalImage();
+      this.source.finalSrc = await this.getFinalImage();
     },
-    download() {
-      saveAs(this.getFinalImage(), this.source.fileName);
+    async download() {
+      saveAs(await this.getFinalImage(), this.source.fileName);
     },
-    getFinalImage(): string {
-      const { canvas } = this.cropper.getResult();
+    async getFinalImage(): Promise<string> {
+      const canvas = await html2canvas(document.querySelector('.vue-preview__wrapper'));
       return canvas?.toDataURL('image/jpeg');
     },
     resetImage() {
@@ -185,11 +191,13 @@ export default defineNuxtComponent({
 })
 </script>
 
-<style scoped lang="scss">
-.fade-leave-active {
-  opacity: 0 !important;
+<style lang="scss">
+.cropper-background {
+  background-color: #fff;
 }
+</style>
 
+<style scoped lang="scss">
 .loading {
   background-color: rgba(241, 241, 241, .8);
   position: absolute;

@@ -27,6 +27,7 @@ class ImageProcessor {
 
   private WIDTH: number = 413;
   private HEIGHT: number = 531;
+  private MIN_IMAGE_WEIGHT = 8;
   private segmenter!: bodySegmentation.BodySegmenter;
   private detector!: faceLandmarksDetection.FaceLandmarksDetector;
 
@@ -61,7 +62,7 @@ class ImageProcessor {
     if (removeBackground) {
       image = await this.removeBackground(image);
     }
-    return await this.runFaceRecognition(image, file.name);
+    return await this.runFaceRecognition(image, file);
   }
 
   async getBrightness(imageElement: HTMLImageElement): Promise<number | any> {
@@ -97,31 +98,44 @@ class ImageProcessor {
     return faces;
   }
 
-  private getRemoveMotivation(numFaces: number, brightness: number): string {
+  private getRemoveMotivation(numFaces: number, brightness: number, fileSize: number): string[] {
     let motivations: string[] = [];
-    if(numFaces == 0) {
+    if (numFaces == 0) {
       motivations.push("Nessun volto rilevato!");
-    } else if(numFaces >= 2) {
+    } else if (numFaces >= 2) {
       motivations.push("Ci sono troppi volti all'interno della foto!");
     }
-    if(brightness <= 58) {
+    if (brightness <= 58) {
       motivations.push("L'immagine risulta essere troppo scura!");
     }
-    return motivations.join('; ');
+    if (Math.round(fileSize / 1000) <= this.MIN_IMAGE_WEIGHT) {
+      motivations.push("L'immagine è troppo piccola");
+    }
+    return motivations;
   }
 
-  async runFaceRecognition(image: HTMLImageElement, fileName: string): Promise<Source | undefined> {
+  private isToRemove(numFaces: number, brightness: number, fileSize: number): boolean {
+    let isToRemove: boolean = false;
+    isToRemove = isToRemove || numFaces !== 1;
+    isToRemove = isToRemove || brightness <= 58;
+    isToRemove = isToRemove || Math.round(fileSize / 1000) <= this.MIN_IMAGE_WEIGHT;
+    return isToRemove;
+  }
+
+  async runFaceRecognition(image: HTMLImageElement, file: File): Promise<Source | undefined> {
     console.log("runFaceRecognition");
     const faces = await this.detectFaces(image);
     const brightness = await this.getBrightness(image);
+    const fileSize = file.size;
     if (faces) {
       const obj: Source = {
         image,
-        fileName,
+        fileName: file.name,
         faces: faces.length,
         facesBox: faces[0]?.box,
-        toRemove: faces.length !== 1 || brightness <= 58,
-        toRemoveMotivation: this.getRemoveMotivation(faces.length, brightness),
+        toRemove: this.isToRemove(faces.length, brightness, fileSize),
+        toRemoveMotivations: this.getRemoveMotivation(faces.length, brightness, fileSize),
+        toRemoveAdditionalMotivation: '',
         finalSrc: ''
       };
       return obj;
