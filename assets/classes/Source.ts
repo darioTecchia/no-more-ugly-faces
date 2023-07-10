@@ -6,6 +6,7 @@ export default class Source {
   finalSrc: string = '';
   facesBox!: BoundingBox;
   toRemove: boolean = false;
-  toRemoveMotivation: string = '';
+  toRemoveMotivations: string[] = [];
+  toRemoveAdditionalMotivation: string = '';
   fileName: string = ''
 }

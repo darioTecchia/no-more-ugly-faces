@@ -128,13 +128,8 @@ export default defineNuxtComponent({
     generateReport() {
       this.elaboratingReport = true;
       let textContent = `riferimento;motivazione_scarto\n`;
-      textContent = this.sources.reduce((accumulator, source, index) => {
-        if (source.toRemove) {
-          return accumulator + `${source.fileName};${source.toRemoveMotivation}\n`;
-        }
-        else {
-          return accumulator + "";
-        }
+      textContent = this.sources.filter(source => source.toRemove).reduce((accumulator, source) => {
+        return accumulator + `${source.fileName};${source.toRemoveMotivations.join('; ')}\n`;
       }, textContent);
       // Create a Blob object with the text content
       const blob = new Blob([textContent], { type: "text/csv;charset=utf-8" });

@@ -31,7 +31,7 @@
 
     </div>
 
-    <div class="card-body d-flex align-items-center justify-content-between">
+    <div class="card-body d-flex align-items-center">
       <div class="align-items-center d-flex">
         <div>
           <Cropper :class="{ 'opacity-50': source.toRemove }" :ref="'cropper_' + index" imageRestriction="none"
@@ -65,11 +65,16 @@
       </div>
 
       <div class="p-3" v-if="source.toRemove">
+        Motivazioni dell'esclusione:
         <div class="row">
           <div class="col">
-            <label for="remoteMotivation" class="form-label">Motivare l'esclusione della foto.</label>
-            <input v-model="source.toRemoveMotivation" type="text" id="remoteMotivation" class="form-control"
-              placeholder="Motivazione esclusione" aria-label="Motivazione esclusione">
+            <span v-for="motivation of source.toRemoveMotivations" class="badge text-bg-danger me-1">{{ motivation }}</span>
+          </div>
+        </div>
+        <div class="row mt-2">
+          <div class="col">
+            <input v-model="source.toRemoveAdditionalMotivation" type="text" id="removeMotivation" class="form-control"
+              placeholder="Informazinoi aggiuntive" aria-label="Informazinoi aggiuntive">
           </div>
         </div>
       </div>
