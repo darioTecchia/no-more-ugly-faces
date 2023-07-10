@@ -9,6 +9,7 @@
     "deploy": "nuxt generate && gh-pages --dotfiles -d .output/public"
   },
   "devDependencies": {
+    "@types/debounce": "^1.2.1",
     "gh-pages": "^5.0.0",
     "nuxt": "^3.1.2",
     "sass": "^1.61.0",

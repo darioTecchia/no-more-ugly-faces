@@ -40,6 +40,9 @@
               height: 531,
               width: 413
             }" 
+            :background-wrapper-component="
+              CustomBackgroundWrapper
+            "
             :stencil-props="{
               aspectRatio: 413 / 531
             }" 
@@ -77,6 +80,7 @@
 <script setup lang="ts">
 import { ImageProcessor } from 'assets/core/core';
 import Source from '~/assets/classes/Source'
+import CustomBackgroundWrapper from './CustomBackgroundWrapper.vue';
 
 defineProps({
   source: {
