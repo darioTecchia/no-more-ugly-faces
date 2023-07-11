@@ -61,7 +61,7 @@
             </button>
           </div>
         </div>
-        <Preview :class="{ 'opacity-50': source.toRemove }" class="ms-3 border border-1 border-black"
+        <Preview :class="{ 'opacity-50': source.toRemove }" :id="'row_' + index" class="ms-3 border border-1 border-black"
           :image="result.image" :width="413" :height="531" :coordinates="result.coordinates" />
       </div>
 
@@ -156,7 +156,7 @@ export default defineNuxtComponent({
       saveAs(await this.getFinalImage(), this.source.fileName);
     },
     async getFinalImage(): Promise<string> {
-      const canvas = await html2canvas(document.querySelector('.vue-preview__wrapper'));
+      const canvas = await html2canvas(document.querySelector(`#row_${this.index} .vue-preview__wrapper`));
       return canvas?.toDataURL('image/jpeg');
     },
     resetImage() {
