@@ -35,18 +35,16 @@
       <div class="align-items-center d-flex">
         <div>
           <Cropper :class="{ 'opacity-50': source.toRemove }" :ref="'cropper_' + index" imageRestriction="none"
-            :default-position="defaultPosition" @change="onChange" class="source-image" :src="source.image.src" 
+            :default-position="defaultPosition" @change="onChange" class="source-image" :src="source.image.src"
             background-class="cropper-background"
             :canvas="{
               height: 531,
               width: 413
-            }" 
-            :background-wrapper-component="
-              CustomBackgroundWrapper
-            "
+            }"
+            :background-wrapper-component="CustomBackgroundWrapper"
             :stencil-props="{
               aspectRatio: 413 / 531
-            }" 
+            }"
           />
           <div class="mt-2">
             <button @click="removeBg()" type="button" class="btn btn-sm btn-light me-2">
@@ -150,7 +148,9 @@ export default defineNuxtComponent({
         coordinates,
         image
       };
-      this.source.finalSrc = await this.getFinalImage();
+      setTimeout(async () => {
+        this.source.finalSrc = await this.getFinalImage();
+      }, 100);
     },
     async download() {
       saveAs(await this.getFinalImage(), this.source.fileName);

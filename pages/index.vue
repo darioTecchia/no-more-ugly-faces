@@ -102,11 +102,9 @@ export default defineNuxtComponent({
     };
   },
   async mounted() {
+    imageProcessor = await ImageProcessor.getInstance();
     this.appReady = true;
     this.message = "App pronta!";
-  },
-  async beforeMount() {
-    imageProcessor = await ImageProcessor.getInstance();
   },
   methods: {
     async loadImage(event: any) {
